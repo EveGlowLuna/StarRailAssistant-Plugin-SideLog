@@ -1,3 +1,6 @@
+# MIT License
+# Copyright (c) 2025 EveGlow
+
 import sys
 from PySide6.QtCore import Qt, QPoint, QTimer
 from PySide6.QtWidgets import QApplication, QTextEdit, QVBoxLayout, QWidget
@@ -10,38 +13,44 @@ class TransparentLogWindow(QWidget):
 
         self.setWindowTitle("透明日志")
         self.setGeometry(100, 100, 500, 300)
-        self.setAttribute(Qt.WA_TranslucentBackground)  # 设置透明背景
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)  # 去掉窗口边框并设置置顶，同时隐藏任务栏程序窗口选择
-        self.setAttribute(Qt.WA_TransparentForMouseEvents)  # 允许鼠标穿透透明窗口
-        self.move(QApplication.primaryScreen().geometry().bottomLeft() - self.rect().bottomLeft() + QPoint(0, -300))  # 调整位置到任务栏上方100像素处
-        # 设置样式去除边框
+        self.setAttribute(Qt.WA_TranslucentBackground)  # 设置窗口背景透明
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)  # 无边框窗口，保持最前显示，隐藏任务栏图标
+        self.setAttribute(Qt.WA_TransparentForMouseEvents)  # 设置鼠标事件穿透
+        self.move(QApplication.primaryScreen().geometry().bottomLeft() - self.rect().bottomLeft() + QPoint(0, -300))  # 定位窗口到屏幕底部任务栏上方
+        # 设置窗口无边框样式
         self.setStyleSheet("background-color: transparent; border: none;")
         
-        # 创建文本框并设置透明背景
+        # 初始化日志显示文本框
         self.log_view = QTextEdit(self)
-        self.log_view.setStyleSheet("background-color: transparent; color: white;")
-        self.log_view.setReadOnly(True)
-        self.log_view.setLineWrapMode(QTextEdit.WidgetWidth)  # 启用自动换行
-        self.log_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # 隐藏水平滚动条
-        self.log_view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # 隐藏垂直滚动条
-        self.log_view.setFocusPolicy(Qt.NoFocus)  # 禁止获取焦点
+        self.log_view.setStyleSheet("background-color: transparent; color: white;")  # 透明背景，白色文字
+        self.log_view.setReadOnly(True)  # 只读模式
+        self.log_view.setLineWrapMode(QTextEdit.WidgetWidth)  # 按窗口宽度自动换行
+        self.log_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # 禁用水平滚动条
+        self.log_view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # 禁用垂直滚动条
+        self.log_view.setFocusPolicy(Qt.NoFocus)  # 禁止文本框获取焦点
         self.log_view.setContextMenuPolicy(Qt.NoContextMenu)  # 禁用右键菜单
-        # 自动滚动到底部
-        # 使用QTimer延迟执行滚动操作，避免过于频繁的更新导致程序不稳定
+        
+        # 初始化自动滚动定时器
         self.scroll_timer = QTimer()
-        self.scroll_timer.setSingleShot(True)
-        self.scroll_timer.setInterval(50)  # 50毫秒的延迟
-        self.scroll_timer.timeout.connect(self.scroll_to_bottom)
-        self.log_view.textChanged.connect(lambda: self.scroll_timer.start())
+        self.scroll_timer.setSingleShot(True)  # 单次触发模式
+        self.scroll_timer.setInterval(50)  # 50毫秒延迟
+        self.scroll_timer.timeout.connect(self.scroll_to_bottom)  # 连接滚动槽函数
+        self.log_view.textChanged.connect(lambda: self.scroll_timer.start())  # 文本变化时触发定时器
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.log_view)
 
     def scroll_to_bottom(self):
+        """自动滚动到文本框底部"""
         self.log_view.verticalScrollBar().setValue(self.log_view.verticalScrollBar().maximum())
 
     def update_log(self, msg):
-        """更新日志内容，支持不同级别的颜色"""
+        """
+        更新日志显示内容
+        
+        参数:
+            msg: 日志消息对象，包含level和message等信息
+        """
         color_map = {
             "INFO": "#90EE90",
             "WARNING": "yellow",
@@ -69,28 +78,40 @@ class TransparentLogWindow(QWidget):
         self.log_view.append(html_text)
 
     def closeEvent(self, event):
-        """优雅地关闭应用程序"""
+        """
+        窗口关闭事件处理
+        
+        参数:
+            event: 关闭事件对象
+        """
         print("窗口关闭，退出程序")
-        event.accept()  # 允许关闭事件，关闭窗口
+        event.accept()  # 接受关闭事件
 
 class MainEntrance(PluginBase):
+    """插件主入口类"""
+    
     def __init__(self):
+        """初始化插件"""
         super().__init__()
-        self.window = None
+        self.window = None  # 日志窗口实例
     
     def show_window(self):
+        """显示日志窗口"""
         self.window = TransparentLogWindow()
         self.window.show()
-        logger.info("插件启动成功。")
+        logger.info("插件启动成功。")  # 记录启动日志
 
 if __name__ != "__main__":
+    """作为插件运行时注册插件"""
     plugin = MainEntrance()
-    PluginManager.register(plugin)
-    plugin.show_window()
-    logger.add(plugin.window.update_log)
+    PluginManager.register(plugin)  # 注册插件
+    plugin.show_window()  # 显示窗口
+    logger.add(plugin.window.update_log)  # 添加日志输出处理
 
 def run():
+    """空运行函数，保留接口"""
     pass
 
 if __name__ == "__main__":
+    """直接运行时的提示信息"""
     input("还没想好如何实现主窗口，但你可以键入'Enter'退出程序喵~")
