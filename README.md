@@ -1,5 +1,5 @@
 
-# StarRailAssistant 插件：SideLog - 透明侧栏日志助手  
+# StarRailAssistant-Plugin-SideLog - 边窗日志  
 
 
 ## 📌 项目简介  
