@@ -9,7 +9,7 @@ SideLog 是一款专为 [StarRailAssistant（星穹铁道助手）](https://gith
 ## ✨ 核心功能  
 | 功能特性 | 细节说明 |  
 |----------|----------|  
-| **透明侧栏窗口** | 窗口背景透明、无边框，自动吸附于屏幕右侧（可自定义位置），默认置顶且不遮挡主程序，任务栏上方显示（适配不同系统任务栏位置） |  
+| **透明侧栏窗口** | 窗口背景透明、无边框，自动吸附于屏幕右侧（可自定义位置），默认置顶且不遮挡游戏，任务栏上方显示（适配不同系统任务栏位置） |  
 | **鼠标穿透交互** | 窗口支持 `WA_TransparentForMouseEvents` 特性，鼠标可直接穿透操作底层界面（如点击游戏窗口或主程序按钮），无需手动隐藏 |  
 | **多级别日志着色** | 自动识别 `INFO`/`WARNING`/`ERROR`/`SUCCESS` 日志级别，匹配不同颜色高亮（可自定义调色）：<br>- `INFO`: 浅绿（`#90EE90`）<br>- `WARNING`: 亮黄（`#FFD700`）<br>- `ERROR`: 橙红（`#FF4040`）<br>- `SUCCESS`: 墨绿（`#228B22`） |  
 | **智能滚动控制** | 新增日志时自动滚动至底部（50ms延迟优化流畅度） |  
@@ -23,8 +23,8 @@ SideLog 是一款专为 [StarRailAssistant（星穹铁道助手）](https://gith
 
 
 ### 安装步骤  
-1. **下载插件**：从 [Release 页面](https://github.com/EveGlowLuna/StarRailAssistant-Plugin-SideLog/releases) 下载最新版 `SideLog.zip`（或直接克隆仓库）。  
-2. **放置插件**：将解压后的 `StarRailAssistant-Plugin-SideLog` 文件夹复制到 StarRailAssistant 的插件目录（默认路径：`主程序根目录/plugins/`）。  
+1. **下载插件**：从 [Release 页面](https://github.com/EveGlowLuna/StarRailAssistant-Plugin-SideLog/releases) 下载最新版源码文件（或直接克隆仓库）。  
+2. **放置插件**：将解压后的 `StarRailAssistant-Plugin-SideLog` 文件夹复制到 StarRailAssistant 的插件目录（默认路径：`主程序根目录/plugins/SideLog`）。  
 3. **启动验证**：重启 StarRailAssistant，插件会自动加载（可通过主程序「插件管理」界面确认状态）。  
 
 
