@@ -31,8 +31,7 @@ SideLog 是一款专为 [StarRailAssistant（星穹铁道助手）](https://gith
 ### 自定义配置（可选）  
 若需调整窗口位置、颜色方案等，可修改 `__init__.py` 中的配置项：  
 ```python  
-# 窗口初始位置（x, y），默认右侧居中（根据屏幕分辨率自动计算）  
-WINDOW_POSITION = (screen_width - 300, screen_height // 2 - 200)  
+self.move(QApplication.primaryScreen().geometry().bottomLeft() - self.rect().bottomLeft() + QPoint(0, -300))  # 定位窗口到屏幕底部任务栏上方
 
 # 日志级别颜色映射（支持HEX/RGB/颜色名称）  
 LOG_LEVEL_COLOR = {  
