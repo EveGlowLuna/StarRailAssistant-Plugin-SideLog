@@ -1,41 +1,41 @@
 # MIT License
 # Copyright (c) 2025 EveGlow
+from PySide6.QtCore import Qt, QTimer
+from PySide6.QtWidgets import QTextEdit, QVBoxLayout, QWidget
 
-import sys
-from PySide6.QtCore import Qt, QPoint, QTimer
-from PySide6.QtWidgets import QApplication, QTextEdit, QVBoxLayout, QWidget
+from SRACore.utils import Logger
 from SRACore.utils.Plugins import *
-from SRACore.utils.Logger import logger
+from SRACore.utils.SRAOperator import SRAOperator
+
 
 class TransparentLogWindow(QWidget):
     def __init__(self):
         super().__init__()
 
         self.setWindowTitle("透明日志")
-        self.setGeometry(100, 100, 500, 300)
-        self.setAttribute(Qt.WA_TranslucentBackground)  # 设置窗口背景透明
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)  # 无边框窗口，保持最前显示，隐藏任务栏图标
-        self.setAttribute(Qt.WA_TransparentForMouseEvents)  # 设置鼠标事件穿透
-        self.move(QApplication.primaryScreen().geometry().bottomLeft() - self.rect().bottomLeft() + QPoint(0, -300))  # 定位窗口到屏幕底部任务栏上方
+        self.setGeometry(100, 100, 500, 200)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)  # 设置窗口背景透明
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)  # 无边框窗口，保持最前显示，隐藏任务栏图标
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)  # 设置鼠标事件穿透
+        # self.move(QApplication.primaryScreen().geometry().bottomLeft() - self.rect().bottomLeft() + QPoint(0, -300))  # 定位窗口到屏幕底部任务栏上方
         # 设置窗口无边框样式
         self.setStyleSheet("background-color: transparent; border: none;")
-        
+
         # 初始化日志显示文本框
         self.log_view = QTextEdit(self)
         self.log_view.setStyleSheet("background-color: transparent; color: white;")  # 透明背景，白色文字
         self.log_view.setReadOnly(True)  # 只读模式
-        self.log_view.setLineWrapMode(QTextEdit.WidgetWidth)  # 按窗口宽度自动换行
-        self.log_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # 禁用水平滚动条
-        self.log_view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # 禁用垂直滚动条
-        self.log_view.setFocusPolicy(Qt.NoFocus)  # 禁止文本框获取焦点
-        self.log_view.setContextMenuPolicy(Qt.NoContextMenu)  # 禁用右键菜单
-        
-        # 初始化自动滚动定时器
-        self.scroll_timer = QTimer()
-        self.scroll_timer.setSingleShot(True)  # 单次触发模式
-        self.scroll_timer.setInterval(50)  # 50毫秒延迟
-        self.scroll_timer.timeout.connect(self.scroll_to_bottom)  # 连接滚动槽函数
-        self.log_view.textChanged.connect(lambda: self.scroll_timer.start())  # 文本变化时触发定时器
+        self.log_view.setLineWrapMode(QTextEdit.LineWrapMode.WidgetWidth)  # 按窗口宽度自动换行
+        self.log_view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)  # 禁用水平滚动条
+        self.log_view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)  # 禁用垂直滚动条
+        self.log_view.setFocusPolicy(Qt.FocusPolicy.NoFocus)  # 禁止文本框获取焦点
+        self.log_view.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)  # 禁用右键菜单
+
+        # 初始化自动定位定时器
+        self.timer = QTimer()
+        self.timer.setInterval(1000)
+        self.timer.timeout.connect(self.update_location)
+        self.timer.start()
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.log_view)
@@ -58,12 +58,11 @@ class TransparentLogWindow(QWidget):
             "SUCCESS": "green",
             # "DEBUG": "lightblue" 测试可用
         }
-        record = msg.record
-        level = record["level"].name
+        level = msg.split("|")[1].strip()
         if level.upper() not in ["INFO", "WARNING", "ERROR", "SUCCESS"]:
             return
-        message = record["message"]
-        time = record["time"].strftime("%m-%d %H:%M:%S")
+        message = msg.split("|")[-1]
+        time = msg.split("|")[0].split(" ")[1]
 
         color = color_map.get(level.upper(), "white")
         # 构建带有阴影效果和颜色的HTML格式日志文本
@@ -74,8 +73,13 @@ class TransparentLogWindow(QWidget):
             f'<span style="color:#D8BFD8">{time}</span> <span style="color:{color}">[{level}] </span> <span style="color:#7B68EE"> {message}</span>'
             f'</div>'
         )
-
         self.log_view.append(html_text)
+        self.scroll_to_bottom()
+
+    def update_location(self):
+        top=SRAOperator.area_top/SRAOperator.zoom
+        left=SRAOperator.area_left/SRAOperator.zoom
+        self.setGeometry(int(left),int(top+450),500,200)
 
     def closeEvent(self, event):
         """
@@ -89,24 +93,23 @@ class TransparentLogWindow(QWidget):
 
 class MainEntrance(PluginBase):
     """插件主入口类"""
-    
+
     def __init__(self):
         """初始化插件"""
-        super().__init__()
+        super().__init__(self.__class__.__name__)
         self.window = None  # 日志窗口实例
-    
+
     def show_window(self):
         """显示日志窗口"""
         self.window = TransparentLogWindow()
         self.window.show()
-        logger.info("插件启动成功。")  # 记录启动日志
+        Logger.logger.info("插件启动成功。")  # 记录启动日志
 
 if __name__ != "__main__":
     """作为插件运行时注册插件"""
-    plugin = MainEntrance()
-    PluginManager.register(plugin)  # 注册插件
-    plugin.show_window()  # 显示窗口
-    logger.add(plugin.window.update_log)  # 添加日志输出处理
+    log_window = TransparentLogWindow()
+    log_window.show()
+    PluginManager.public_instance.logChanged.connect(log_window.update_log)
 
 def run():
     """空运行函数，保留接口"""
