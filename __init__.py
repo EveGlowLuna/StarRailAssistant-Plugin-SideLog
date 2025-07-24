@@ -7,6 +7,9 @@ from SRACore.utils import WindowsProcess
 from SRACore.utils.Logger import log_emitter
 from SRACore.utils.SRAOperator import SRAOperator
 
+import ctypes
+from ctypes import windll
+
 
 class TransparentLogWindow(QWidget):
     def __init__(self):
@@ -40,6 +43,11 @@ class TransparentLogWindow(QWidget):
 
         layout = QVBoxLayout(self)
         layout.addWidget(self.log_view)
+
+        # 设置窗口不能进行点击操作
+        hwnd = int(self.winId())
+        ex_style = windll.user32.GetWindowLongW(hwnd, -20)
+        windll.user32.SetWindowLongW(hwnd, -20, ex_style | 0x80000 | 0x20)
 
     def scroll_to_bottom(self):
         """自动滚动到文本框底部"""
